@@ -1,5 +1,16 @@
 #include "sasppu_mpy_help.h"
 
+/**
+ * Copy a sprite block to the screen.
+ * @param dst_x X coordinate to copy to
+ * @param dst_y Y coordinate to copy to
+ * @param width Width of the block to copy
+ * @param height Height of the block to copy
+ * @param src_x Source X coordinate in sprite memory
+ * @param src_y Source Y coordinate in sprite memory
+ * @param double_size (optional) If true, copy at double size
+ * @return An integer indicating the result of the copy operation
+ */
 static mp_obj_t sasppu_copy_sprite(size_t n_args, const mp_obj_t *args)
 {
     mp_int_t dst_x = mp_obj_get_int(args[0]);
@@ -19,6 +30,17 @@ static mp_obj_t sasppu_copy_sprite(size_t n_args, const mp_obj_t *args)
 
 MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(sasppu_copy_sprite_obj, 6, 7, sasppu_copy_sprite);
 
+/**
+ * Copy a sprite block with transparency to the screen.
+ * @param dst_x X coordinate to copy to
+ * @param dst_y Y coordinate to copy to
+ * @param width Width of the block to copy
+ * @param height Height of the block to copy
+ * @param src_x Source X coordinate in sprite memory
+ * @param src_y Source Y coordinate in sprite memory
+ * @param double_size (optional) If true, copy at double size
+ * @return An integer indicating the result of the transparent copy operation
+ */
 static mp_obj_t sasppu_copy_sprite_transparent(size_t n_args, const mp_obj_t *args)
 {
     mp_int_t dst_x = mp_obj_get_int(args[0]);
@@ -38,6 +60,15 @@ static mp_obj_t sasppu_copy_sprite_transparent(size_t n_args, const mp_obj_t *ar
 
 MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(sasppu_copy_sprite_transparent_obj, 6, 7, sasppu_copy_sprite_transparent);
 
+/**
+ * Fill a rectangular sprite area with a solid color.
+ * @param x X coordinate of the area
+ * @param y Y coordinate of the area
+ * @param width Width of the area to fill
+ * @param height Height of the area to fill
+ * @param colour Color value to fill with
+ * @return An integer indicating the result of the fill operation
+ */
 static mp_obj_t sasppu_fill_sprite(size_t n_args, const mp_obj_t *args)
 {
     mp_int_t x = mp_obj_get_int(args[0]);
@@ -51,6 +82,17 @@ static mp_obj_t sasppu_fill_sprite(size_t n_args, const mp_obj_t *args)
 
 MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(sasppu_fill_sprite_obj, 5, 5, sasppu_fill_sprite);
 
+/**
+ * Draw multiline text onto a sprite layer.
+ * @param x X coordinate to start drawing
+ * @param y Y coordinate to start drawing
+ * @param colour Text color value
+ * @param line_width Maximum line width in pixels
+ * @param text The text string to draw
+ * @param double_size (optional) If true, draw text at double size
+ * @param newline_height (optional) Height of newlines in pixels
+ * @return An integer indicating the result of the text draw operation
+ */
 static mp_obj_t sasppu_draw_text_sprite(size_t n_args, const mp_obj_t *args)
 {
     mp_int_t x = mp_obj_get_int(args[0]);
@@ -75,6 +117,18 @@ static mp_obj_t sasppu_draw_text_sprite(size_t n_args, const mp_obj_t *args)
 
 MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(sasppu_draw_text_sprite_obj, 5, 7, sasppu_draw_text_sprite);
 
+/**
+ * Draw text onto a sprite layer and return next cursor position.
+ * @param x Starting X coordinate (updated in place)
+ * @param y Starting Y coordinate (updated in place)
+ * @param colour Text color value
+ * @param line_start Starting offset within the text
+ * @param line_width Maximum line width in pixels
+ * @param text The text string to draw
+ * @param double_size (optional) If true, draw text at double size
+ * @param newline_height (optional) Height of newlines in pixels
+ * @return Tuple (result_code, new_x, new_y)
+ */
 static mp_obj_t sasppu_draw_text_next_sprite(size_t n_args, const mp_obj_t *args)
 {
     size_t x = mp_obj_get_int(args[0]);
@@ -101,6 +155,16 @@ static mp_obj_t sasppu_draw_text_next_sprite(size_t n_args, const mp_obj_t *args
 
 MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(sasppu_draw_text_next_sprite_obj, 6, 8, sasppu_draw_text_next_sprite);
 
+/**
+ * Blit a sprite to the screen.
+ * @param x X coordinate to blit to
+ * @param y Y coordinate to blit to
+ * @param width Width of the sprite
+ * @param height Height of the sprite
+ * @param data The sprite data as a bytes or bytearray object
+ * @param double_size (optional) If true, the sprite will be drawn at double size
+ * @return An integer indicating the result of the blit operation
+ */
 static mp_obj_t sasppu_blit_sprite(size_t n_args, const mp_obj_t *args)
 {
     mp_int_t x = mp_obj_get_int(args[0]);
@@ -125,6 +189,16 @@ static mp_obj_t sasppu_blit_sprite(size_t n_args, const mp_obj_t *args)
 
 MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(sasppu_blit_sprite_obj, 5, 6, sasppu_blit_sprite);
 
+/**
+ * Blit a sprite with transparency to the screen.
+ * @param x X coordinate to blit to
+ * @param y Y coordinate to blit to
+ * @param width Width of the sprite
+ * @param height Height of the sprite
+ * @param data The sprite data as a bytes or bytearray object
+ * @param double_size (optional) If true, the sprite will be drawn at double size
+ * @return An integer indicating the result of the transparent blit operation
+ */
 static mp_obj_t sasppu_blit_sprite_transparent(size_t n_args, const mp_obj_t *args)
 {
     mp_int_t x = mp_obj_get_int(args[0]);
@@ -149,6 +223,18 @@ static mp_obj_t sasppu_blit_sprite_transparent(size_t n_args, const mp_obj_t *ar
 
 MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(sasppu_blit_sprite_transparent_obj, 5, 6, sasppu_blit_sprite_transparent);
 
+/**
+ * Blit a paletted sprite to the screen.
+ * @param x X coordinate to blit to
+ * @param y Y coordinate to blit to
+ * @param width Width of the sprite
+ * @param height Height of the sprite
+ * @param palette Palette data as bytes or bytearray
+ * @param bitdepth Bit depth (0-3) for palette indices
+ * @param data The sprite index data as bytes or bytearray
+ * @param double_size (optional) If true, draw at double size
+ * @return An integer indicating the result of the paletted blit
+ */
 static mp_obj_t sasppu_paletted_sprite(size_t n_args, const mp_obj_t *args)
 {
     mp_int_t x = mp_obj_get_int(args[0]);
@@ -188,6 +274,18 @@ static mp_obj_t sasppu_paletted_sprite(size_t n_args, const mp_obj_t *args)
 
 MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(sasppu_paletted_sprite_obj, 7, 8, sasppu_paletted_sprite);
 
+/**
+ * Blit a paletted sprite with transparency to the screen.
+ * @param x X coordinate to blit to
+ * @param y Y coordinate to blit to
+ * @param width Width of the sprite
+ * @param height Height of the sprite
+ * @param palette Palette data as bytes or bytearray
+ * @param bitdepth Bit depth (0-3) for palette indices
+ * @param data The sprite index data as bytes or bytearray
+ * @param double_size (optional) If true, draw at double size
+ * @return An integer indicating the result of the transparent paletted blit
+ */
 static mp_obj_t sasppu_paletted_sprite_transparent(size_t n_args, const mp_obj_t *args)
 {
     mp_int_t x = mp_obj_get_int(args[0]);
@@ -227,6 +325,18 @@ static mp_obj_t sasppu_paletted_sprite_transparent(size_t n_args, const mp_obj_t
 
 MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(sasppu_paletted_sprite_transparent_obj, 7, 8, sasppu_paletted_sprite_transparent);
 
+/**
+ * Blit a compressed sprite to the screen.
+ * @param x X coordinate to blit to
+ * @param y Y coordinate to blit to
+ * @param width Width of the sprite
+ * @param height Height of the sprite
+ * @param palette Palette data as bytes or bytearray
+ * @param bitdepth Bit depth (0-3) for palette indices
+ * @param data The compressed sprite data as bytes or bytearray
+ * @param double_size (optional) If true, draw at double size
+ * @return An integer indicating the result of the compressed blit
+ */
 static mp_obj_t sasppu_compressed_sprite(size_t n_args, const mp_obj_t *args)
 {
     mp_int_t x = mp_obj_get_int(args[0]);
@@ -266,6 +376,18 @@ static mp_obj_t sasppu_compressed_sprite(size_t n_args, const mp_obj_t *args)
 
 MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(sasppu_compressed_sprite_obj, 7, 8, sasppu_compressed_sprite);
 
+/**
+ * Blit a compressed sprite with transparency to the screen.
+ * @param x X coordinate to blit to
+ * @param y Y coordinate to blit to
+ * @param width Width of the sprite
+ * @param height Height of the sprite
+ * @param palette Palette data as bytes or bytearray
+ * @param bitdepth Bit depth (0-3) for palette indices
+ * @param data The compressed sprite data as bytes or bytearray
+ * @param double_size (optional) If true, draw at double size
+ * @return An integer indicating the result of the transparent compressed blit
+ */
 static mp_obj_t sasppu_compressed_sprite_transparent(size_t n_args, const mp_obj_t *args)
 {
     mp_int_t x = mp_obj_get_int(args[0]);
@@ -305,6 +427,17 @@ static mp_obj_t sasppu_compressed_sprite_transparent(size_t n_args, const mp_obj
 
 MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(sasppu_compressed_sprite_transparent_obj, 7, 8, sasppu_compressed_sprite_transparent);
 
+/**
+ * Copy a background block to the screen.
+ * @param dst_x X coordinate to copy to
+ * @param dst_y Y coordinate to copy to
+ * @param width Width of the block to copy
+ * @param height Height of the block to copy
+ * @param src_x Source X coordinate in background map
+ * @param src_y Source Y coordinate in background map
+ * @param double_size (optional) If true, copy at double size
+ * @return An integer indicating the result of the copy operation
+ */
 static mp_obj_t sasppu_copy_background(size_t n_args, const mp_obj_t *args)
 {
     mp_int_t dst_x = mp_obj_get_int(args[0]);
@@ -324,6 +457,17 @@ static mp_obj_t sasppu_copy_background(size_t n_args, const mp_obj_t *args)
 
 MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(sasppu_copy_background_obj, 6, 7, sasppu_copy_background);
 
+/**
+ * Copy a background block with transparency to the screen.
+ * @param dst_x X coordinate to copy to
+ * @param dst_y Y coordinate to copy to
+ * @param width Width of the block to copy
+ * @param height Height of the block to copy
+ * @param src_x Source X coordinate in background map
+ * @param src_y Source Y coordinate in background map
+ * @param double_size (optional) If true, copy at double size
+ * @return An integer indicating the result of the transparent copy operation
+ */
 static mp_obj_t sasppu_copy_background_transparent(size_t n_args, const mp_obj_t *args)
 {
     mp_int_t dst_x = mp_obj_get_int(args[0]);
@@ -343,6 +487,15 @@ static mp_obj_t sasppu_copy_background_transparent(size_t n_args, const mp_obj_t
 
 MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(sasppu_copy_background_transparent_obj, 6, 7, sasppu_copy_background_transparent);
 
+/**
+ * Fill a rectangular background area with a solid color.
+ * @param x X coordinate of the area
+ * @param y Y coordinate of the area
+ * @param width Width of the area to fill
+ * @param height Height of the area to fill
+ * @param colour Color value to fill with
+ * @return An integer indicating the result of the fill operation
+ */
 static mp_obj_t sasppu_fill_background(size_t n_args, const mp_obj_t *args)
 {
     mp_int_t x = mp_obj_get_int(args[0]);
@@ -356,6 +509,17 @@ static mp_obj_t sasppu_fill_background(size_t n_args, const mp_obj_t *args)
 
 MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(sasppu_fill_background_obj, 5, 5, sasppu_fill_background);
 
+/**
+ * Draw multiline text onto a background layer.
+ * @param x X coordinate to start drawing
+ * @param y Y coordinate to start drawing
+ * @param colour Text color value
+ * @param line_width Maximum line width in pixels
+ * @param text The text string to draw
+ * @param double_size (optional) If true, draw text at double size
+ * @param newline_height (optional) Height of newlines in pixels
+ * @return An integer indicating the result of the text draw operation
+ */
 static mp_obj_t sasppu_draw_text_background(size_t n_args, const mp_obj_t *args)
 {
     mp_int_t x = mp_obj_get_int(args[0]);
@@ -380,6 +544,18 @@ static mp_obj_t sasppu_draw_text_background(size_t n_args, const mp_obj_t *args)
 
 MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(sasppu_draw_text_background_obj, 5, 7, sasppu_draw_text_background);
 
+/**
+ * Draw text onto a background layer and return next cursor position.
+ * @param x Starting X coordinate (updated in place)
+ * @param y Starting Y coordinate (updated in place)
+ * @param colour Text color value
+ * @param line_start Starting offset within the text
+ * @param line_width Maximum line width in pixels
+ * @param text The text string to draw
+ * @param double_size (optional) If true, draw text at double size
+ * @param newline_height (optional) Height of newlines in pixels
+ * @return Tuple (result_code, new_x, new_y)
+ */
 static mp_obj_t sasppu_draw_text_next_background(size_t n_args, const mp_obj_t *args)
 {
     size_t x = mp_obj_get_int(args[0]);
@@ -406,6 +582,16 @@ static mp_obj_t sasppu_draw_text_next_background(size_t n_args, const mp_obj_t *
 
 MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(sasppu_draw_text_next_background_obj, 6, 8, sasppu_draw_text_next_background);
 
+/**
+ * Blit a background image to the screen.
+ * @param x X coordinate to blit to
+ * @param y Y coordinate to blit to
+ * @param width Width of the image
+ * @param height Height of the image
+ * @param data The background data as a bytes or bytearray object
+ * @param double_size (optional) If true, the image will be drawn at double size
+ * @return An integer indicating the result of the blit operation
+ */
 static mp_obj_t sasppu_blit_background(size_t n_args, const mp_obj_t *args)
 {
     mp_int_t x = mp_obj_get_int(args[0]);
@@ -430,6 +616,16 @@ static mp_obj_t sasppu_blit_background(size_t n_args, const mp_obj_t *args)
 
 MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(sasppu_blit_background_obj, 5, 6, sasppu_blit_background);
 
+/**
+ * Blit a background image with transparency to the screen.
+ * @param x X coordinate to blit to
+ * @param y Y coordinate to blit to
+ * @param width Width of the image
+ * @param height Height of the image
+ * @param data The background data as a bytes or bytearray object
+ * @param double_size (optional) If true, the image will be drawn at double size
+ * @return An integer indicating the result of the transparent blit operation
+ */
 static mp_obj_t sasppu_blit_background_transparent(size_t n_args, const mp_obj_t *args)
 {
     mp_int_t x = mp_obj_get_int(args[0]);
@@ -454,6 +650,18 @@ static mp_obj_t sasppu_blit_background_transparent(size_t n_args, const mp_obj_t
 
 MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(sasppu_blit_background_transparent_obj, 5, 6, sasppu_blit_background_transparent);
 
+/**
+ * Blit a paletted background to the screen.
+ * @param x X coordinate to blit to
+ * @param y Y coordinate to blit to
+ * @param width Width of the background
+ * @param height Height of the background
+ * @param palette Palette data as bytes or bytearray
+ * @param bitdepth Bit depth (0-3) for palette indices
+ * @param data The background index data as bytes or bytearray
+ * @param double_size (optional) If true, draw at double size
+ * @return An integer indicating the result of the paletted blit
+ */
 static mp_obj_t sasppu_paletted_background(size_t n_args, const mp_obj_t *args)
 {
     mp_int_t x = mp_obj_get_int(args[0]);
@@ -493,6 +701,18 @@ static mp_obj_t sasppu_paletted_background(size_t n_args, const mp_obj_t *args)
 
 MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(sasppu_paletted_background_obj, 7, 8, sasppu_paletted_background);
 
+/**
+ * Blit a paletted background with transparency to the screen.
+ * @param x X coordinate to blit to
+ * @param y Y coordinate to blit to
+ * @param width Width of the background
+ * @param height Height of the background
+ * @param palette Palette data as bytes or bytearray
+ * @param bitdepth Bit depth (0-3) for palette indices
+ * @param data The background index data as bytes or bytearray
+ * @param double_size (optional) If true, draw at double size
+ * @return An integer indicating the result of the transparent paletted blit
+ */
 static mp_obj_t sasppu_paletted_background_transparent(size_t n_args, const mp_obj_t *args)
 {
     mp_int_t x = mp_obj_get_int(args[0]);
@@ -532,6 +752,18 @@ static mp_obj_t sasppu_paletted_background_transparent(size_t n_args, const mp_o
 
 MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(sasppu_paletted_background_transparent_obj, 7, 8, sasppu_paletted_background_transparent);
 
+/**
+ * Blit a compressed background to the screen.
+ * @param x X coordinate to blit to
+ * @param y Y coordinate to blit to
+ * @param width Width of the background
+ * @param height Height of the background
+ * @param palette Palette data as bytes or bytearray
+ * @param bitdepth Bit depth (0-3) for palette indices
+ * @param data The compressed background data as bytes or bytearray
+ * @param double_size (optional) If true, draw at double size
+ * @return An integer indicating the result of the compressed blit
+ */
 static mp_obj_t sasppu_compressed_background(size_t n_args, const mp_obj_t *args)
 {
     mp_int_t x = mp_obj_get_int(args[0]);
@@ -571,6 +803,18 @@ static mp_obj_t sasppu_compressed_background(size_t n_args, const mp_obj_t *args
 
 MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(sasppu_compressed_background_obj, 7, 8, sasppu_compressed_background);
 
+/**
+ * Blit a compressed background with transparency to the screen.
+ * @param x X coordinate to blit to
+ * @param y Y coordinate to blit to
+ * @param width Width of the background
+ * @param height Height of the background
+ * @param palette Palette data as bytes or bytearray
+ * @param bitdepth Bit depth (0-3) for palette indices
+ * @param data The compressed background data as bytes or bytearray
+ * @param double_size (optional) If true, draw at double size
+ * @return An integer indicating the result of the transparent compressed blit
+ */
 static mp_obj_t sasppu_compressed_background_transparent(size_t n_args, const mp_obj_t *args)
 {
     mp_int_t x = mp_obj_get_int(args[0]);
@@ -610,6 +854,14 @@ static mp_obj_t sasppu_compressed_background_transparent(size_t n_args, const mp
 
 MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(sasppu_compressed_background_transparent_obj, 7, 8, sasppu_compressed_background_transparent);
 
+/**
+ * Measure multiline text dimensions.
+ * @param line_width Maximum line width in pixels
+ * @param text The text string to measure
+ * @param double_size (optional) If true, measure at double size
+ * @param newline_height (optional) Height of newlines in pixels
+ * @return Tuple (width, height) of the rendered text
+ */
 static mp_obj_t sasppu_get_text_size(size_t n_args, const mp_obj_t *args)
 {
     mp_int_t line_width = mp_obj_get_int(args[0]);
