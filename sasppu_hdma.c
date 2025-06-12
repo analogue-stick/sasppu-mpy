@@ -11,7 +11,7 @@ static mp_obj_t hdma_subscr(mp_obj_t self_in, mp_obj_t index_in, mp_obj_t value)
 {
     sasppu_hdma_t *self = MP_OBJ_TO_PTR(self_in);
     mp_int_t index = mp_obj_get_int(index_in);
-    if ((index < 0) || (index > HDMA_LEN))
+    if ((index < 0) || (index >= HDMA_LEN))
     {
         mp_raise_msg(&mp_type_IndexError, MP_ERROR_TEXT("Index out of HDMA bounds"));
         return mp_const_none;
