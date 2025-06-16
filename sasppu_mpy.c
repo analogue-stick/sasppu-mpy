@@ -19,12 +19,12 @@
 
 #include "sasppu_mpy_help.h"
 
-static mp_obj_t init(void)
+static mp_obj_t gfx_reset(void)
 {
     SASPPU_gfx_reset();
     return mp_const_none;
 }
-static MP_DEFINE_CONST_FUN_OBJ_0(init_obj, init);
+static MP_DEFINE_CONST_FUN_OBJ_0(gfx_reset_obj, gfx_reset);
 
 void sasppu_module_attr(mp_obj_t self_in, qstr attr, mp_obj_t *dest)
 {
@@ -115,12 +115,13 @@ void sasppu_module_attr(mp_obj_t self_in, qstr attr, mp_obj_t *dest)
 // optimized to word-sized integers by the build system (interned strings).
 static const mp_rom_map_elem_t sasppu_globals_table[] = {
     {MP_ROM_QSTR(MP_QSTR___name__), MP_ROM_QSTR(MP_QSTR_sasppu)},
-    {MP_ROM_QSTR(MP_QSTR___init__), MP_ROM_PTR(&init_obj)},
 
     {MP_ROM_QSTR(MP_QSTR_Background), MP_ROM_PTR(&sasppu_type_background)},
     {MP_ROM_QSTR(MP_QSTR_Sprite), MP_ROM_PTR(&sasppu_type_sprite)},
     {MP_ROM_QSTR(MP_QSTR_CMathState), MP_ROM_PTR(&sasppu_type_cmath_state)},
     {MP_ROM_QSTR(MP_QSTR_MainState), MP_ROM_PTR(&sasppu_type_main_state)},
+
+    {MP_ROM_QSTR(MP_QSTR_gfx_reset), MP_ROM_PTR(&gfx_reset_obj)},
 
     {MP_ROM_QSTR(MP_QSTR_copy_sprite), MP_ROM_PTR(&sasppu_copy_sprite_obj)},
     {MP_ROM_QSTR(MP_QSTR_copy_sprite_transparent), MP_ROM_PTR(&sasppu_copy_sprite_transparent_obj)},
