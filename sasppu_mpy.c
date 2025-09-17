@@ -79,6 +79,9 @@ void sasppu_module_attr(mp_obj_t self_in, qstr attr, mp_obj_t *dest)
         case MP_QSTR_hdma_enable:
             dest[0] = MP_OBJ_NEW_SMALL_INT(SASPPU_hdma_enable);
             break;
+        case MP_QSTR_forced_blank:
+            dest[0] = SASPPU_forced_blank ? mp_const_true : mp_const_false;
+            break;
         default:
             dest[1] = MP_OBJ_SENTINEL;
             break;
@@ -101,6 +104,11 @@ void sasppu_module_attr(mp_obj_t self_in, qstr attr, mp_obj_t *dest)
                 SASPPU_hdma_enable = val;
                 dest[0] = MP_OBJ_NULL;
             }
+        }
+        case MP_QSTR_forced_blank:
+        {
+            SASPPU_forced_blank = mp_obj_is_true(dest[1]);
+            dest[0] = MP_OBJ_NULL;
         }
         default:
             break;
