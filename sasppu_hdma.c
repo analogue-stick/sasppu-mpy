@@ -1,75 +1,123 @@
 #include "sasppu_hdma.h"
-#include "sasppu_sprite.h"
-#include "sasppu_main_state.h"
-#include "sasppu_cmath_state.h"
-#include "sasppu_background.h"
-#include "subscr_load_adapter.h"
+#include <string.h>
 
-static mp_obj_t hdma_subscr(mp_obj_t self_in, mp_obj_t index_in, mp_obj_t value)
-{
-    sasppu_hdma_t *self = MP_OBJ_TO_PTR(self_in);
-    mp_int_t index = mp_obj_get_int(index_in);
-    if ((index < 0) || (index >= HDMA_LEN))
-    {
-        mp_raise_msg(&mp_type_IndexError, MP_ERROR_TEXT("Index out of HDMA bounds"));
-        return mp_const_none;
-    }
+mp_obj_t sasppu_hdma_entry_default(mp_obj_t self_in) {
+  HDMAEntry *self = MP_OBJ_TO_PTR(self_in);
+  memset(&self->command, 0,
+         sizeof(HDMAEntry) - sizeof(mp_obj_type_t));
+  self->command = 0;
+  self->value = 0;
+  return mp_const_none;
+}
 
-    HDMAEntry *entry = &SASPPU_hdma_tables[self->table][index];
+static mp_obj_t sasppu_hdma_entry_make_new(const mp_obj_type_t *type,
+                                           size_t n_args, size_t n_kw,
+                                           const mp_obj_t *args_in) {
+  HDMAEntry *o = mp_obj_malloc(HDMAEntry, type);
 
-    if (value == MP_OBJ_NULL)
-    {
-        entry->command = HDMA_NOOP;
-        return mp_const_none;
-    }
-    else if (value == MP_OBJ_SENTINEL)
-    {
-        mp_obj_t tuple_args[2] = {MP_OBJ_NEW_SMALL_INT(entry->command), MP_OBJ_NEW_SMALL_INT(entry->value)};
-        return mp_obj_new_tuple(2, tuple_args);
-    }
-    else
-    {
-        if (!mp_obj_is_type(value, &mp_type_tuple)) {
-            mp_raise_msg(&mp_type_TypeError, MP_ERROR_TEXT("HDMA value must be tuple of two integers"));
-            return mp_const_none;
-        }
-        mp_obj_tuple_t *pair = MP_OBJ_TO_PTR(value);
-        if (pair->len != 2) {
-            mp_raise_msg(&mp_type_TypeError, MP_ERROR_TEXT("HDMA value must be tuple of two integers"));
-            return mp_const_none;
-        }
-        mp_int_t command = mp_obj_get_int(pair->items[0]);
-        if ((command < 0) || (command >= HDMA_LAST))
-        {
-            mp_raise_msg(&mp_type_IndexError, MP_ERROR_TEXT("HDMA command out of bounds"));
-            return mp_const_none;
-        }
-        uint16_t value = (uint16_t)(mp_obj_get_int(pair->items[1]));
-        entry->command = (uint16_t)(command);
-        entry->value = value;
-        return mp_const_none;
-    }
+  sasppu_hdma_entry_default(MP_OBJ_FROM_PTR(o));
 
+  return MP_OBJ_FROM_PTR(o);
+}
+
+static mp_obj_t sasppu_hdma_entry_binary_op(mp_binary_op_t op, mp_obj_t lhs_in,
+                                            mp_obj_t rhs_in) {
+  HDMAEntry *self = MP_OBJ_TO_PTR(lhs_in);
+  HDMAEntry *other = MP_OBJ_TO_PTR(rhs_in);
+  switch (op) {
+  case MP_BINARY_OP_EQUAL: {
+    return memcmp(&self->command, &other->command,
+                  sizeof(HDMAEntry) - sizeof(mp_obj_type_t))
+               ? mp_const_true
+               : mp_const_false;
+  }
+  default:
+    // op not supported
     return MP_OBJ_NULL;
+  }
 }
 
-static mp_obj_t hdma_unary_op(mp_unary_op_t op, mp_obj_t self_in)
-{
-    switch (op)
-    {
-    case MP_UNARY_OP_LEN:
-    {
-        return MP_OBJ_NEW_SMALL_INT(HDMA_LEN);
-    }
+static void sasppu_hdma_entry_attr(mp_obj_t self_in, qstr attr,
+                                   mp_obj_t *dest) {
+  HDMAEntry *self = MP_OBJ_TO_PTR(self_in);
+  if (dest[0] == MP_OBJ_NULL) {
+    // Load attribute.
+    switch (attr) {
+    case MP_QSTR_command:
+      dest[0] = MP_OBJ_NEW_SMALL_INT(self->command);
+      break;
+    case MP_QSTR_value:
+      dest[0] = MP_OBJ_NEW_SMALL_INT(self->value);
+      break;
     default:
-        return MP_OBJ_NULL; // op not supported
+      dest[1] = MP_OBJ_SENTINEL;
+      break;
     }
+  } else if (dest[1] != MP_OBJ_NULL) {
+    // Store attribute.
+    mp_int_t val = mp_obj_get_int(dest[1]);
+    switch (attr) {
+    case MP_QSTR_command:
+      if ((val < 0) || (val >= HDMA_LAST)) {
+        mp_raise_ValueError(MP_ERROR_TEXT("Invalid HDMA command"));
+      } else {
+        self->command = val;
+        dest[0] = MP_OBJ_NULL;
+      }
+      break;
+    case MP_QSTR_value:
+      if ((val < -0x8000) || (val > 0x7FFF)) {
+        mp_raise_ValueError(MP_ERROR_TEXT("Command value out of bounds"));
+      } else {
+        if (val < 0) {
+          val += 0x10000;
+        }
+        self->value = val;
+        dest[0] = MP_OBJ_NULL;
+      }
+      break;
+    default:
+      break;
+    }
+  }
 }
 
-MP_DEFINE_CONST_OBJ_TYPE(
-    sasppu_type_hdma,
-    MP_QSTR_HDMA,
-    MP_TYPE_FLAG_ITER_IS_GETITER,
-    unary_op, hdma_unary_op,
-    subscr, hdma_subscr,
-    iter, subscr_getiter);
+static const mp_rom_map_elem_t sasppu_hdma_entry_locals_dict_table[] = {
+    {MP_ROM_QSTR(MP_QSTR_HDMA_NOOP), MP_ROM_INT(HDMA_NOOP)},
+    {MP_ROM_QSTR(MP_QSTR_HDMA_DISABLE), MP_ROM_INT(HDMA_DISABLE)},
+    {MP_ROM_QSTR(MP_QSTR_HDMA_MAIN_STATE_MAINSCREEN_COLOUR),
+     MP_ROM_INT(HDMA_MAIN_STATE_MAINSCREEN_COLOUR)},
+    {MP_ROM_QSTR(MP_QSTR_HDMA_MAIN_STATE_SUBSCREEN_COLOUR),
+     MP_ROM_INT(HDMA_MAIN_STATE_SUBSCREEN_COLOUR)},
+    {MP_ROM_QSTR(MP_QSTR_HDMA_MAIN_STATE_WINDOW1_LEFT),
+     MP_ROM_INT(HDMA_MAIN_STATE_WINDOW1_LEFT)},
+    {MP_ROM_QSTR(MP_QSTR_HDMA_MAIN_STATE_WINDOW1_RIGHT),
+     MP_ROM_INT(HDMA_MAIN_STATE_WINDOW1_RIGHT)},
+    {MP_ROM_QSTR(MP_QSTR_HDMA_MAIN_STATE_WINDOW2_LEFT),
+     MP_ROM_INT(HDMA_MAIN_STATE_WINDOW2_LEFT)},
+    {MP_ROM_QSTR(MP_QSTR_HDMA_MAIN_STATE_WINDOW2_RIGHT),
+     MP_ROM_INT(HDMA_MAIN_STATE_WINDOW2_RIGHT)},
+    {MP_ROM_QSTR(MP_QSTR_HDMA_MAIN_STATE_BGCOL_WINDOWS),
+     MP_ROM_INT(HDMA_MAIN_STATE_BGCOL_WINDOWS)},
+    {MP_ROM_QSTR(MP_QSTR_HDMA_MAIN_STATE_FLAGS),
+     MP_ROM_INT(HDMA_MAIN_STATE_FLAGS)},
+    {MP_ROM_QSTR(MP_QSTR_HDMA_CMATH_STATE_SCREEN_FADE),
+     MP_ROM_INT(HDMA_CMATH_STATE_SCREEN_FADE)},
+    {MP_ROM_QSTR(MP_QSTR_HDMA_CMATH_STATE_FLAGS),
+     MP_ROM_INT(HDMA_CMATH_STATE_FLAGS)},
+    {MP_ROM_QSTR(MP_QSTR_HDMA_BACKGROUND_X), MP_ROM_INT(HDMA_BACKGROUND_X)},
+    {MP_ROM_QSTR(MP_QSTR_HDMA_BACKGROUND_Y), MP_ROM_INT(HDMA_BACKGROUND_Y)},
+    {MP_ROM_QSTR(MP_QSTR_HDMA_BACKGROUND_WINDOWS),
+     MP_ROM_INT(HDMA_BACKGROUND_WINDOWS)},
+    {MP_ROM_QSTR(MP_QSTR_HDMA_BACKGROUND_FLAGS),
+     MP_ROM_INT(HDMA_BACKGROUND_FLAGS)},
+};
+static MP_DEFINE_CONST_DICT(sasppu_hdma_entry_locals_dict,
+                            sasppu_hdma_entry_locals_dict_table);
+
+MP_DEFINE_CONST_OBJ_TYPE(sasppu_type_hdma_entry, MP_QSTR_HdmaEntry,
+                         MP_TYPE_FLAG_NONE, make_new,
+                         sasppu_hdma_entry_make_new, locals_dict,
+                         &sasppu_hdma_entry_locals_dict, binary_op,
+                         sasppu_hdma_entry_binary_op, attr,
+                         sasppu_hdma_entry_attr);

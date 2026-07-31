@@ -1,16 +1,9 @@
 #pragma once
-#include "py/runtime.h"
-#include <stdlib.h>
 #include "py/binary.h"
 #include "py/obj.h"
 #include "py/objarray.h"
-#include "sasppu/sasppu.h"
+#include "py/runtime.h"
 #include "sasppu/help.h"
+#include "sasppu/sasppu.h"
 
-typedef struct
-{
-    mp_obj_base_t base;
-    int table;
-} sasppu_hdma_t;
-
-extern const mp_obj_type_t sasppu_type_hdma;
+extern const mp_obj_type_t sasppu_type_hdma_entry;
