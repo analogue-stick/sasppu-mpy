@@ -144,16 +144,16 @@ static mp_obj_t sasppu_draw_text_next(size_t n_args, const mp_obj_t *args) {
   if (n_args == 9) {
     newline_height = mp_obj_get_int(args[8]);
   }
-  SASPPUImageCode res =
-      SASPPU_draw_text_next(&x, &y, colour, line_start, line_width,
-                            newline_height, double_size, (const char **)&text);
+  SASPPUImageCode res = SASPPU_draw_text_next(
+      graphics_plane, &x, &y, colour, line_start, line_width, newline_height,
+      double_size, (const char **)&text);
   mp_obj_t tuple_args[3] = {MP_OBJ_NEW_SMALL_INT(res), MP_OBJ_NEW_SMALL_INT(x),
                             MP_OBJ_NEW_SMALL_INT(y)};
   return mp_obj_new_tuple(3, tuple_args);
 }
 
-MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(sasppu_draw_text_next_sprite_obj, 7, 9,
-                                    sasppu_draw_text_next_sprite);
+MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(sasppu_draw_text_next_obj, 7, 9,
+                                    sasppu_draw_text_next);
 
 /**
  * Blit a graphic to a plane.
@@ -250,7 +250,7 @@ static mp_obj_t sasppu_paletted(size_t n_args, const mp_obj_t *args) {
   if (n_args == 10) {
     transparent = mp_obj_is_true(args[9]);
   }
-  SASPPUImageCode res = SASPPU_paletted_sprite(
+  SASPPUImageCode res = SASPPU_paletted(
       graphics_plane, x, y, width, height, double_size, transparent, data,
       (const uint16_t *)palette, bitdepth);
   return MP_OBJ_NEW_SMALL_INT(res);
@@ -309,7 +309,7 @@ static mp_obj_t sasppu_compressed(size_t n_args, const mp_obj_t *args) {
   if (n_args == 10) {
     transparent = mp_obj_is_true(args[9]);
   }
-  SASPPUImageCode res = SASPPU_compressed_sprite(
+  SASPPUImageCode res = SASPPU_compressed(
       graphics_plane, x, y, width, height, double_size, transparent, data,
       (const uint16_t *)palette, bitdepth);
   return MP_OBJ_NEW_SMALL_INT(res);

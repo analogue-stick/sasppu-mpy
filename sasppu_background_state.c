@@ -4,7 +4,7 @@
 
 mp_obj_t sasppu_background_state_default(mp_obj_t self_in) {
   BackgroundState *self = MP_OBJ_TO_PTR(self_in);
-  memset(&self->scroll_x, 0, sizeof(BackgroundState) - sizeof(mp_obj_type_t));
+  memset(&self->scroll_x, 0, sizeof(BackgroundState) - sizeof(mp_obj_base_t));
   self->scroll_x = 0;
   self->scroll_y = 0;
   self->windows = 0xFF;
@@ -30,7 +30,7 @@ static mp_obj_t sasppu_background_state_binary_op(mp_binary_op_t op,
   switch (op) {
   case MP_BINARY_OP_EQUAL: {
     return memcmp(&self->scroll_x, &other->scroll_x,
-                  sizeof(BackgroundState) - sizeof(mp_obj_type_t))
+                  sizeof(BackgroundState) - sizeof(mp_obj_base_t))
                ? mp_const_true
                : mp_const_false;
   }
@@ -129,10 +129,6 @@ static void sasppu_background_state_attr(mp_obj_t self_in, qstr attr,
 }
 
 static const mp_rom_map_elem_t sasppu_background_state_locals_dict_table[] = {
-    {MP_ROM_QSTR(MP_QSTR_WIDTH_POWER), MP_ROM_INT(BG_WIDTH_POWER)},
-    {MP_ROM_QSTR(MP_QSTR_HEIGHT_POWER), MP_ROM_INT(BG_HEIGHT_POWER)},
-    {MP_ROM_QSTR(MP_QSTR_WIDTH), MP_ROM_INT(BG_WIDTH)},
-    {MP_ROM_QSTR(MP_QSTR_HEIGHT), MP_ROM_INT(BG_HEIGHT)},
     {MP_ROM_QSTR(MP_QSTR_C_MATH), MP_ROM_INT(BG_C_MATH)},
 };
 static MP_DEFINE_CONST_DICT(sasppu_background_state_locals_dict,

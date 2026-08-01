@@ -3,7 +3,7 @@
 
 mp_obj_t sasppu_buffer_entry_default(mp_obj_t self_in) {
   BufferEntry *self = MP_OBJ_TO_PTR(self_in);
-  memset(&self->command, 0, sizeof(BufferEntry) - sizeof(mp_obj_type_t));
+  memset(&self->command, 0, sizeof(BufferEntry) - sizeof(mp_obj_base_t));
   self->command = 0;
   self->data = (void *)(0);
   return mp_const_none;
@@ -16,6 +16,19 @@ static mp_obj_t sasppu_buffer_entry_make_new(const mp_obj_type_t *type,
 
   sasppu_buffer_entry_default(MP_OBJ_FROM_PTR(o));
 
+  if (n_args == 1 || n_args > 2) {
+    mp_raise_TypeError(MP_ERROR_TEXT("buffer entry needs command and object"));
+    return mp_const_none;
+  }
+
+  mp_int_t command = mp_obj_get_int(args_in[0]);
+  if ((command < 0) || (command >= CMD_LAST)) {
+    mp_raise_ValueError(MP_ERROR_TEXT("Invalid buffer command"));
+  } else {
+    o->command = command;
+  }
+  o->data = MP_OBJ_TO_PTR(args_in[1]);
+
   return MP_OBJ_FROM_PTR(o);
 }
 
@@ -27,7 +40,7 @@ static mp_obj_t sasppu_buffer_entry_binary_op(mp_binary_op_t op,
   switch (op) {
   case MP_BINARY_OP_EQUAL: {
     return memcmp(&self->command, &other->command,
-                  sizeof(BufferEntry) - sizeof(mp_obj_type_t))
+                  sizeof(BufferEntry) - sizeof(mp_obj_base_t))
                ? mp_const_true
                : mp_const_false;
   }

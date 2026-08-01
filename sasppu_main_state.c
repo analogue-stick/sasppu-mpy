@@ -5,7 +5,7 @@
 mp_obj_t sasppu_main_state_default(mp_obj_t self_in) {
   MainState *self = MP_OBJ_TO_PTR(self_in);
   memset(&self->mainscreen_colour, 0,
-         sizeof(MainState) - sizeof(mp_obj_type_t));
+         sizeof(MainState) - sizeof(mp_obj_base_t));
   self->window_1_left = 0;
   self->window_2_left = 0;
   self->window_1_right = 255;
@@ -34,7 +34,7 @@ static mp_obj_t sasppu_main_state_binary_op(mp_binary_op_t op, mp_obj_t lhs_in,
   switch (op) {
   case MP_BINARY_OP_EQUAL: {
     return memcmp(&self->mainscreen_colour, &other->mainscreen_colour,
-                  sizeof(MainState) - sizeof(mp_obj_type_t))
+                  sizeof(MainState) - sizeof(mp_obj_base_t))
                ? mp_const_true
                : mp_const_false;
   }
@@ -177,10 +177,6 @@ static void sasppu_main_state_attr(mp_obj_t self_in, qstr attr,
 }
 
 static const mp_rom_map_elem_t sasppu_main_state_locals_dict_table[] = {
-    {MP_ROM_QSTR(MP_QSTR_SPR0_ENABLE), MP_ROM_INT(MAIN_SPR0_ENABLE)},
-    {MP_ROM_QSTR(MP_QSTR_SPR1_ENABLE), MP_ROM_INT(MAIN_SPR1_ENABLE)},
-    {MP_ROM_QSTR(MP_QSTR_BG0_ENABLE), MP_ROM_INT(MAIN_BG0_ENABLE)},
-    {MP_ROM_QSTR(MP_QSTR_BG1_ENABLE), MP_ROM_INT(MAIN_BG1_ENABLE)},
     {MP_ROM_QSTR(MP_QSTR_CMATH_ENABLE), MP_ROM_INT(MAIN_CMATH_ENABLE)},
     {MP_ROM_QSTR(MP_QSTR_BGCOL_WINDOW_ENABLE),
      MP_ROM_INT(MAIN_BGCOL_WINDOW_ENABLE)},

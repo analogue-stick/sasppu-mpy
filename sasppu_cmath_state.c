@@ -4,7 +4,7 @@
 
 mp_obj_t sasppu_cmath_state_default(mp_obj_t self_in) {
   CMathState *self = MP_OBJ_TO_PTR(self_in);
-  memset(&self->screen_fade, 0, sizeof(CMathState) - sizeof(mp_obj_type_t));
+  memset(&self->screen_fade, 0, sizeof(CMathState) - sizeof(mp_obj_base_t));
   self->screen_fade = 255;
   self->flags = 0;
   return mp_const_none;
@@ -16,6 +16,7 @@ static mp_obj_t sasppu_cmath_state_make_new(const mp_obj_type_t *type,
   CMathState *o = mp_obj_malloc(CMathState, type);
 
   sasppu_cmath_state_default(MP_OBJ_FROM_PTR(o));
+  
 
   return MP_OBJ_FROM_PTR(o);
 }
@@ -27,7 +28,7 @@ static mp_obj_t sasppu_cmath_state_binary_op(mp_binary_op_t op, mp_obj_t lhs_in,
   switch (op) {
   case MP_BINARY_OP_EQUAL: {
     return memcmp(&self->screen_fade, &other->screen_fade,
-                  sizeof(CMathState) - sizeof(mp_obj_type_t))
+                  sizeof(CMathState) - sizeof(mp_obj_base_t))
                ? mp_const_true
                : mp_const_false;
   }

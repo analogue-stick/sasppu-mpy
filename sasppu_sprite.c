@@ -3,7 +3,7 @@
 
 mp_obj_t sasppu_sprite_default(mp_obj_t self_in) {
   Sprite *self = MP_OBJ_TO_PTR(self_in);
-  memset(&self->x, 0, sizeof(Sprite) - sizeof(mp_obj_type_t));
+  memset(&self->x, 0, sizeof(Sprite) - sizeof(mp_obj_base_t));
   self->x = 0;
   self->y = 0;
   self->width = 8;
@@ -30,7 +30,7 @@ static mp_obj_t sasppu_sprite_binary_op(mp_binary_op_t op, mp_obj_t lhs_in,
   Sprite *other = MP_OBJ_TO_PTR(rhs_in);
   switch (op) {
   case MP_BINARY_OP_EQUAL: {
-    return memcmp(&self->x, &other->x, sizeof(Sprite) - sizeof(mp_obj_type_t))
+    return memcmp(&self->x, &other->x, sizeof(Sprite) - sizeof(mp_obj_base_t))
                ? mp_const_true
                : mp_const_false;
   }

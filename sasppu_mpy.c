@@ -1,4 +1,3 @@
-// Include the header file to get access to the MicroPython API
 #include "py/binary.h"
 #include "py/obj.h"
 #include "py/objarray.h"
@@ -6,18 +5,16 @@
 #include "py/runtime.h"
 #include "sasppu/help.h"
 #include "sasppu/sasppu.h"
-#include <stdlib.h>
 
-#include "sasppu_background.h"
+#include "sasppu_background_map.h"
+#include "sasppu_background_state.h"
+#include "sasppu_buffer.h"
 #include "sasppu_cmath_state.h"
-#include "sasppu_main_state.h"
-#include "sasppu_sprite.h"
-
+#include "sasppu_graphics_plane.h"
 #include "sasppu_hdma.h"
-#include "sasppu_map.h"
-#include "sasppu_oam.h"
-
+#include "sasppu_main_state.h"
 #include "sasppu_mpy_help.h"
+#include "sasppu_sprite.h"
 
 #if !MICROPY_ENABLE_FINALISER
 #error "SASPPU_MPY requires MICROPY_ENABLE_FINALISER"
@@ -27,52 +24,6 @@ void sasppu_module_attr(mp_obj_t self_in, qstr attr, mp_obj_t *dest) {
   if (dest[0] == MP_OBJ_NULL) {
     // Load attribute.
     switch (attr) {
-    case MP_QSTR_oam:
-      dest[0] = mp_obj_malloc(sasppu_oam_t, &sasppu_type_oam);
-      break;
-    case MP_QSTR_bg0:
-      dest[0] = mp_obj_malloc(sasppu_map_t, &sasppu_type_map);
-      ((sasppu_map_t *)MP_OBJ_TO_PTR(dest[0]))->bg = 0;
-      break;
-    case MP_QSTR_bg1:
-      dest[0] = mp_obj_malloc(sasppu_map_t, &sasppu_type_map);
-      ((sasppu_map_t *)MP_OBJ_TO_PTR(dest[0]))->bg = 1;
-      break;
-    case MP_QSTR_hdma_0:
-      dest[0] = mp_obj_malloc(sasppu_hdma_t, &sasppu_type_hdma);
-      ((sasppu_hdma_t *)MP_OBJ_TO_PTR(dest[0]))->table = 0;
-      break;
-    case MP_QSTR_hdma_1:
-      dest[0] = mp_obj_malloc(sasppu_hdma_t, &sasppu_type_hdma);
-      ((sasppu_hdma_t *)MP_OBJ_TO_PTR(dest[0]))->table = 1;
-      break;
-    case MP_QSTR_hdma_2:
-      dest[0] = mp_obj_malloc(sasppu_hdma_t, &sasppu_type_hdma);
-      ((sasppu_hdma_t *)MP_OBJ_TO_PTR(dest[0]))->table = 2;
-      break;
-    case MP_QSTR_hdma_3:
-      dest[0] = mp_obj_malloc(sasppu_hdma_t, &sasppu_type_hdma);
-      ((sasppu_hdma_t *)MP_OBJ_TO_PTR(dest[0]))->table = 3;
-      break;
-    case MP_QSTR_hdma_4:
-      dest[0] = mp_obj_malloc(sasppu_hdma_t, &sasppu_type_hdma);
-      ((sasppu_hdma_t *)MP_OBJ_TO_PTR(dest[0]))->table = 4;
-      break;
-    case MP_QSTR_hdma_5:
-      dest[0] = mp_obj_malloc(sasppu_hdma_t, &sasppu_type_hdma);
-      ((sasppu_hdma_t *)MP_OBJ_TO_PTR(dest[0]))->table = 5;
-      break;
-    case MP_QSTR_hdma_6:
-      dest[0] = mp_obj_malloc(sasppu_hdma_t, &sasppu_type_hdma);
-      ((sasppu_hdma_t *)MP_OBJ_TO_PTR(dest[0]))->table = 6;
-      break;
-    case MP_QSTR_hdma_7:
-      dest[0] = mp_obj_malloc(sasppu_hdma_t, &sasppu_type_hdma);
-      ((sasppu_hdma_t *)MP_OBJ_TO_PTR(dest[0]))->table = 7;
-      break;
-    case MP_QSTR_hdma_enable:
-      dest[0] = MP_OBJ_NEW_SMALL_INT(SASPPU_hdma_enable);
-      break;
     case MP_QSTR_forced_blank:
       dest[0] = SASPPU_forced_blank ? mp_const_true : mp_const_false;
       break;
@@ -83,15 +34,6 @@ void sasppu_module_attr(mp_obj_t self_in, qstr attr, mp_obj_t *dest) {
   } else if (dest[1] != MP_OBJ_NULL) {
     // Store attribute.
     switch (attr) {
-    case MP_QSTR_hdma_enable: {
-      mp_int_t val = mp_obj_get_int(dest[1]);
-      if ((val < 0) || (val > 0xFF)) {
-        mp_raise_ValueError(MP_ERROR_TEXT("HDMA enable out of bounds"));
-      } else {
-        SASPPU_hdma_enable = val;
-        dest[0] = MP_OBJ_NULL;
-      }
-    }
     case MP_QSTR_forced_blank: {
       SASPPU_forced_blank = mp_obj_is_true(dest[1]);
       dest[0] = MP_OBJ_NULL;
@@ -110,55 +52,26 @@ void sasppu_module_attr(mp_obj_t self_in, qstr attr, mp_obj_t *dest) {
 static const mp_rom_map_elem_t sasppu_globals_table[] = {
     {MP_ROM_QSTR(MP_QSTR___name__), MP_ROM_QSTR(MP_QSTR_sasppu)},
 
-    {MP_ROM_QSTR(MP_QSTR_Background), MP_ROM_PTR(&sasppu_type_background)},
-    {MP_ROM_QSTR(MP_QSTR_Sprite), MP_ROM_PTR(&sasppu_type_sprite)},
+    {MP_ROM_QSTR(MP_QSTR_BackgroundMap),
+     MP_ROM_PTR(&sasppu_type_background_map)},
+    {MP_ROM_QSTR(MP_QSTR_BackgroundState),
+     MP_ROM_PTR(&sasppu_type_background_state)},
+    {MP_ROM_QSTR(MP_QSTR_BufferEntry), MP_ROM_PTR(&sasppu_type_buffer_entry)},
     {MP_ROM_QSTR(MP_QSTR_CMathState), MP_ROM_PTR(&sasppu_type_cmath_state)},
+    {MP_ROM_QSTR(MP_QSTR_GraphicsPlane),
+     MP_ROM_PTR(&sasppu_type_graphics_plane)},
+    {MP_ROM_QSTR(MP_QSTR_HdmaEntry), MP_ROM_PTR(&sasppu_type_hdma_entry)},
     {MP_ROM_QSTR(MP_QSTR_MainState), MP_ROM_PTR(&sasppu_type_main_state)},
+    {MP_ROM_QSTR(MP_QSTR_Sprite), MP_ROM_PTR(&sasppu_type_sprite)},
 
-    {MP_ROM_QSTR(MP_QSTR_gfx_reset), MP_ROM_PTR(&gfx_reset_obj)},
-
-    {MP_ROM_QSTR(MP_QSTR_copy_sprite), MP_ROM_PTR(&sasppu_copy_sprite_obj)},
-    {MP_ROM_QSTR(MP_QSTR_copy_sprite_transparent),
-     MP_ROM_PTR(&sasppu_copy_sprite_transparent_obj)},
-    {MP_ROM_QSTR(MP_QSTR_fill_sprite), MP_ROM_PTR(&sasppu_fill_sprite_obj)},
-    {MP_ROM_QSTR(MP_QSTR_blit_sprite), MP_ROM_PTR(&sasppu_blit_sprite_obj)},
-    {MP_ROM_QSTR(MP_QSTR_blit_sprite_transparent),
-     MP_ROM_PTR(&sasppu_blit_sprite_transparent_obj)},
-    {MP_ROM_QSTR(MP_QSTR_paletted_sprite),
-     MP_ROM_PTR(&sasppu_paletted_sprite_obj)},
-    {MP_ROM_QSTR(MP_QSTR_paletted_sprite_transparent),
-     MP_ROM_PTR(&sasppu_paletted_sprite_transparent_obj)},
-    {MP_ROM_QSTR(MP_QSTR_compressed_sprite),
-     MP_ROM_PTR(&sasppu_compressed_sprite_obj)},
-    {MP_ROM_QSTR(MP_QSTR_compressed_sprite_transparent),
-     MP_ROM_PTR(&sasppu_compressed_sprite_transparent_obj)},
-    {MP_ROM_QSTR(MP_QSTR_draw_text_sprite),
-     MP_ROM_PTR(&sasppu_draw_text_sprite_obj)},
-    {MP_ROM_QSTR(MP_QSTR_draw_text_next_sprite),
-     MP_ROM_PTR(&sasppu_draw_text_next_sprite_obj)},
-
-    {MP_ROM_QSTR(MP_QSTR_copy_background),
-     MP_ROM_PTR(&sasppu_copy_background_obj)},
-    {MP_ROM_QSTR(MP_QSTR_copy_background_transparent),
-     MP_ROM_PTR(&sasppu_copy_background_transparent_obj)},
-    {MP_ROM_QSTR(MP_QSTR_fill_background),
-     MP_ROM_PTR(&sasppu_fill_background_obj)},
-    {MP_ROM_QSTR(MP_QSTR_blit_background),
-     MP_ROM_PTR(&sasppu_blit_background_obj)},
-    {MP_ROM_QSTR(MP_QSTR_blit_background_transparent),
-     MP_ROM_PTR(&sasppu_blit_background_transparent_obj)},
-    {MP_ROM_QSTR(MP_QSTR_paletted_background),
-     MP_ROM_PTR(&sasppu_paletted_background_obj)},
-    {MP_ROM_QSTR(MP_QSTR_paletted_background_transparent),
-     MP_ROM_PTR(&sasppu_paletted_background_transparent_obj)},
-    {MP_ROM_QSTR(MP_QSTR_compressed_background),
-     MP_ROM_PTR(&sasppu_compressed_background_obj)},
-    {MP_ROM_QSTR(MP_QSTR_compressed_background_transparent),
-     MP_ROM_PTR(&sasppu_compressed_background_transparent_obj)},
-    {MP_ROM_QSTR(MP_QSTR_draw_text_background),
-     MP_ROM_PTR(&sasppu_draw_text_background_obj)},
-    {MP_ROM_QSTR(MP_QSTR_draw_text_next_background),
-     MP_ROM_PTR(&sasppu_draw_text_next_background_obj)},
+    {MP_ROM_QSTR(MP_QSTR_copy), MP_ROM_PTR(&sasppu_copy_obj)},
+    {MP_ROM_QSTR(MP_QSTR_fill), MP_ROM_PTR(&sasppu_fill_obj)},
+    {MP_ROM_QSTR(MP_QSTR_blit), MP_ROM_PTR(&sasppu_blit_obj)},
+    {MP_ROM_QSTR(MP_QSTR_paletted), MP_ROM_PTR(&sasppu_paletted_obj)},
+    {MP_ROM_QSTR(MP_QSTR_compressed), MP_ROM_PTR(&sasppu_compressed_obj)},
+    {MP_ROM_QSTR(MP_QSTR_draw_text), MP_ROM_PTR(&sasppu_draw_text_obj)},
+    {MP_ROM_QSTR(MP_QSTR_draw_text_next),
+     MP_ROM_PTR(&sasppu_draw_text_next_obj)},
 
     {MP_ROM_QSTR(MP_QSTR_get_text_size), MP_ROM_PTR(&sasppu_get_text_size_obj)},
 
@@ -182,13 +95,38 @@ static const mp_rom_map_elem_t sasppu_globals_table[] = {
      MP_ROM_PTR(&sasppu_macro_cmath_channel_obj)},
     {MP_ROM_QSTR(MP_QSTR_mul_col), MP_ROM_PTR(&sasppu_macro_mul_col_obj)},
 
-    {MP_ROM_QSTR(MP_QSTR_SPRITE_COUNT), MP_ROM_INT(SPRITE_COUNT)},
+    {MP_ROM_QSTR(MP_QSTR_SPRITE_COUNT_POWER_MAX),
+     MP_ROM_INT(SPRITE_COUNT_POWER_MAX)},
+    {MP_ROM_QSTR(MP_QSTR_SPRITE_COUNT_POWER_MIN),
+     MP_ROM_INT(SPRITE_COUNT_POWER_MIN)},
+    {MP_ROM_QSTR(MP_QSTR_SPRITE_CACHE_POWER), MP_ROM_INT(SPRITE_CACHE_POWER)},
+    {MP_ROM_QSTR(MP_QSTR_SPRITE_COUNT_MAX), MP_ROM_INT(SPRITE_COUNT_MAX)},
+    {MP_ROM_QSTR(MP_QSTR_SPRITE_COUNT_MIN), MP_ROM_INT(SPRITE_COUNT_MIN)},
     {MP_ROM_QSTR(MP_QSTR_SPRITE_CACHE), MP_ROM_INT(SPRITE_CACHE)},
 
-    {MP_ROM_QSTR(MP_QSTR_MAP_WIDTH_POWER), MP_ROM_INT(MAP_WIDTH_POWER)},
-    {MP_ROM_QSTR(MP_QSTR_MAP_HEIGHT_POWER), MP_ROM_INT(MAP_HEIGHT_POWER)},
-    {MP_ROM_QSTR(MP_QSTR_MAP_WIDTH), MP_ROM_INT(MAP_WIDTH)},
-    {MP_ROM_QSTR(MP_QSTR_MAP_HEIGHT), MP_ROM_INT(MAP_HEIGHT)},
+    {MP_ROM_QSTR(MP_QSTR_GRAPHICS_WIDTH_POWER_MAX),
+     MP_ROM_INT(GRAPHICS_WIDTH_POWER_MAX)},
+    {MP_ROM_QSTR(MP_QSTR_GRAPHICS_HEIGHT_POWER_MAX),
+     MP_ROM_INT(GRAPHICS_HEIGHT_POWER_MAX)},
+    {MP_ROM_QSTR(MP_QSTR_GRAPHICS_WIDTH_POWER_MIN),
+     MP_ROM_INT(GRAPHICS_WIDTH_POWER_MIN)},
+    {MP_ROM_QSTR(MP_QSTR_GRAPHICS_HEIGHT_POWER_MIN),
+     MP_ROM_INT(GRAPHICS_HEIGHT_POWER_MIN)},
+    {MP_ROM_QSTR(MP_QSTR_GRAPHICS_WIDTH_MAX), MP_ROM_INT(GRAPHICS_WIDTH_MAX)},
+    {MP_ROM_QSTR(MP_QSTR_GRAPHICS_HEIGHT_MAX), MP_ROM_INT(GRAPHICS_HEIGHT_MAX)},
+    {MP_ROM_QSTR(MP_QSTR_GRAPHICS_WIDTH_MIN), MP_ROM_INT(GRAPHICS_WIDTH_MIN)},
+    {MP_ROM_QSTR(MP_QSTR_GRAPHICS_HEIGHT_MIN), MP_ROM_INT(GRAPHICS_HEIGHT_MIN)},
+
+    {MP_ROM_QSTR(MP_QSTR_MAP_WIDTH_POWER_MAX), MP_ROM_INT(MAP_WIDTH_POWER_MAX)},
+    {MP_ROM_QSTR(MP_QSTR_MAP_HEIGHT_POWER_MAX),
+     MP_ROM_INT(MAP_HEIGHT_POWER_MAX)},
+    {MP_ROM_QSTR(MP_QSTR_MAP_WIDTH_POWER_MIN), MP_ROM_INT(MAP_WIDTH_POWER_MIN)},
+    {MP_ROM_QSTR(MP_QSTR_MAP_HEIGHT_POWER_MIN),
+     MP_ROM_INT(MAP_HEIGHT_POWER_MIN)},
+    {MP_ROM_QSTR(MP_QSTR_MAP_WIDTH_MAX), MP_ROM_INT(MAP_WIDTH_MAX)},
+    {MP_ROM_QSTR(MP_QSTR_MAP_HEIGHT_MAX), MP_ROM_INT(MAP_HEIGHT_MAX)},
+    {MP_ROM_QSTR(MP_QSTR_MAP_WIDTH_MIN), MP_ROM_INT(MAP_WIDTH_MIN)},
+    {MP_ROM_QSTR(MP_QSTR_MAP_HEIGHT_MIN), MP_ROM_INT(MAP_HEIGHT_MIN)},
 
     {MP_ROM_QSTR(MP_QSTR_IC_SUCCESS), MP_ROM_INT(SASPPU_IC_Success)},
     {MP_ROM_QSTR(MP_QSTR_IC_TOO_WIDE), MP_ROM_INT(SASPPU_IC_TooWide)},
@@ -206,6 +144,9 @@ static const mp_rom_map_elem_t sasppu_globals_table[] = {
     {MP_ROM_QSTR(MP_QSTR_BPP2), MP_ROM_INT(1)},
     {MP_ROM_QSTR(MP_QSTR_BPP4), MP_ROM_INT(2)},
     {MP_ROM_QSTR(MP_QSTR_BPP8), MP_ROM_INT(3)},
+
+    {MP_ROM_QSTR(MP_QSTR_SCREEN_WIDTH), MP_ROM_INT(SCREEN_WIDTH)},
+    {MP_ROM_QSTR(MP_QSTR_SCREEN_HEIGHT), MP_ROM_INT(SCREEN_HEIGHT)},
 
     {MP_ROM_QSTR(MP_QSTR_TRANSPARENT_BLACK),
      MP_ROM_INT(SASPPU_RGB555(0, 0, 0))},
