@@ -1,4 +1,3 @@
-// Include the header file to get access to the MicroPython API
 #pragma once
 #include "py/binary.h"
 #include "py/obj.h"

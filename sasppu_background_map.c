@@ -9,7 +9,7 @@ static mp_obj_t sasppu_background_map_make_new(const mp_obj_type_t *type,
     return mp_const_none;
   }
 
-  BackgroundMap *o = mp_obj_malloc(BackgroundMap, type);
+  BackgroundMap *o = mp_obj_malloc_with_finaliser(BackgroundMap, type);
   memset(&o->width, 0, sizeof(BackgroundMap) - sizeof(mp_obj_base_t));
 
   o->width = mp_obj_get_int(args_in[0]);
@@ -46,14 +46,15 @@ static mp_obj_t sasppu_background_map_make_new(const mp_obj_type_t *type,
     return mp_const_none;
   }
 
-  SASPPU_alloc_background_map(o);
+  // default alignment is 4 bytes (UNALIGNED_MEM_ALIGNMENT_BYTES)
+  o->dat = (uint16_t *)(m_malloc((o->width * o->height) * sizeof(uint16_t)));
 
   return MP_OBJ_FROM_PTR(o);
 }
 
 static mp_obj_t sasppu_background_map_deinit(mp_obj_t self_in) {
   BackgroundMap *self = MP_OBJ_TO_PTR(self_in);
-  SASPPU_free_background_map(*self);
+  m_free(self->dat);
   return mp_const_none;
 }
 static MP_DEFINE_CONST_FUN_OBJ_1(sasppu_background_map_deinit_obj,

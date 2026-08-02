@@ -1,4 +1,3 @@
-// Include the header file to get access to the MicroPython API
 #include "sasppu_main_state.h"
 #include <string.h>
 

@@ -1,4 +1,4 @@
-#include "sasppu_hdma.h"
+#include "sasppu_buffer.h"
 #include <string.h>
 
 mp_obj_t sasppu_buffer_entry_default(mp_obj_t self_in) {

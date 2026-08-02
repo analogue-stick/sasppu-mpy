@@ -1,5 +1,7 @@
 #include "sasppu_graphics_plane.h"
+#include "py/mpconfig.h"
 #include "subscr_load_adapter.h"
+#include <assert.h>
 
 static mp_obj_t sasppu_graphics_plane_make_new(const mp_obj_type_t *type,
                                                size_t n_args, size_t n_kw,
@@ -9,7 +11,7 @@ static mp_obj_t sasppu_graphics_plane_make_new(const mp_obj_type_t *type,
     return mp_const_none;
   }
 
-  GraphicsPlane *o = mp_obj_malloc(GraphicsPlane, type);
+  GraphicsPlane *o = mp_obj_malloc_with_finaliser(GraphicsPlane, type);
   memset(&o->width, 0, sizeof(GraphicsPlane) - sizeof(mp_obj_base_t));
 
   o->width = mp_obj_get_int(args_in[0]);
@@ -46,14 +48,18 @@ static mp_obj_t sasppu_graphics_plane_make_new(const mp_obj_type_t *type,
     return mp_const_none;
   }
 
-  SASPPU_alloc_graphics_plane(o);
+  // By sheer happenchance the minimum alignment while using micropython's GC
+  // malloc exactly matches the alignment we need for SIMD.
+  static_assert(MICROPY_BYTES_PER_GC_BLOCK % sizeof(uint16x8_t) == 0);
+  o->dat =
+      (uint16x8_t *)(m_malloc((o->width * o->height / 8) * sizeof(uint16x8_t)));
 
   return MP_OBJ_FROM_PTR(o);
 }
 
 static mp_obj_t sasppu_graphics_plane_deinit(mp_obj_t self_in) {
   GraphicsPlane *self = MP_OBJ_TO_PTR(self_in);
-  SASPPU_free_graphics_plane(*self);
+  m_free(self->dat);
   return mp_const_none;
 }
 static MP_DEFINE_CONST_FUN_OBJ_1(sasppu_graphics_plane_deinit_obj,
